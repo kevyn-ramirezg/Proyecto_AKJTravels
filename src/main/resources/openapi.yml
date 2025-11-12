@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: AKJ Travels API
-  version: 1.0.1
+  version: 1.1.0
 servers:
   - url: http://localhost:8080
 security:
@@ -40,7 +40,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/LoginDTO' }
       responses:
-        '202':
+        '200':
           description: Token emitido
           content:
             application/json:
@@ -122,13 +122,31 @@ paths:
       parameters:
         - { $ref: '#/components/parameters/PathId' }
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema: { $ref: '#/components/schemas/DeleteUserDTO' }
       responses:
         '200':
           description: Usuario eliminado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+    patch:
+      summary: Cambiar contraseña
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditPasswordDTO' }
+      responses:
+        '200':
+          description: Contraseña cambiada
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
@@ -152,26 +170,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /api/users/{id}:
-    patch:
-      summary: Cambiar contraseña
-      tags: [Users]
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { $ref: '#/components/parameters/PathId' }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/EditPasswordDTO' }
-      responses:
-        '200':
-          description: Contraseña cambiada
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ResponseString' }
-
-  /api/users/{id}/bookings/{page}:
+  /api/users/{id}/bookings:
     get:
       summary: Listar reservas del usuario (paginado)
       tags: [Users, Bookings]
@@ -179,19 +178,19 @@ paths:
       parameters:
         - { $ref: '#/components/parameters/PathId' }
         - { $ref: '#/components/parameters/Page' }
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/SearchBookingDTO' }
+        - { $ref: '#/components/parameters/Size' }
+        - in: query
+          name: state
+          required: false
+          schema: { $ref: '#/components/schemas/BookingState' }
       responses:
         '200':
           description: Lista de reservas
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ResponseBookingDTOList' }
+              schema: { $ref: '#/components/schemas/ResponseBookingPage' }
 
-  /api/users/{id}/places/host/{page}:
+  /api/users/{id}/places/host:
     get:
       summary: Listar alojamientos del anfitrión (paginado)
       tags: [Users, Places]
@@ -199,35 +198,60 @@ paths:
       parameters:
         - { $ref: '#/components/parameters/PathId' }
         - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Size' }
       responses:
         '200':
-          description: Lista de lugares
+          description: Página de lugares del anfitrión
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ResponsePlaceDTOList' }
+              schema: { $ref: '#/components/schemas/ResponsePlacePage' }
 
   ############################
   # PLACES
   ############################
-  /api/places/{page}:
+  /api/places:
     get:
       summary: Buscar alojamientos (paginado)
       tags: [Places]
       parameters:
         - { $ref: '#/components/parameters/Page' }
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ListPlaceDTO' }
+        - { $ref: '#/components/parameters/Size' }
+        - in: query
+          name: city
+          required: false
+          schema: { type: string, maxLength: 30 }
+        - in: query
+          name: checkIn
+          required: false
+          schema: { type: string, format: date-time }
+        - in: query
+          name: checkOut
+          required: false
+          schema: { type: string, format: date-time }
+        - in: query
+          name: guestNumber
+          required: false
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: minimum
+          required: false
+          schema: { type: number, format: double }
+        - in: query
+          name: maximum
+          required: false
+          schema: { type: number, format: double }
+        - in: query
+          name: amenities
+          required: false
+          description: Lista separada por comas (enum Services)
+          schema: { type: string }
       responses:
         '200':
-          description: Resultados de búsqueda
+          description: Página de resultados
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ResponsePlaceDTOList' }
+              schema: { $ref: '#/components/schemas/ResponsePlacePage' }
 
-  /api/places:
     post:
       summary: Crear alojamiento
       tags: [Places]
@@ -287,22 +311,22 @@ paths:
           description: Lista de amenidades
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseServicesList'
+              schema: { $ref: '#/components/schemas/ResponseServicesList' }
 
-  /api/places/{id}/comments/{page}:
+  /api/places/{id}/comments:
     get:
-      summary: Listar comentarios del alojamiento (recientes primero)
+      summary: Listar comentarios del alojamiento (recientes primero, paginado)
       tags: [Places, Comments]
       parameters:
         - { $ref: '#/components/parameters/PathId' }
         - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Size' }
       responses:
         '200':
           description: Comentarios
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ResponseCommentDTOList' }
+              schema: { $ref: '#/components/schemas/ResponseCommentPage' }
 
   /api/places/{bookingId}/comments:
     post:
@@ -326,7 +350,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /api/places/{id}/bookings/{page}:
+  /api/places/{id}/bookings:
     get:
       summary: Listar reservas de un alojamiento (paginado)
       tags: [Places, Bookings]
@@ -334,17 +358,17 @@ paths:
       parameters:
         - { $ref: '#/components/parameters/PathId' }
         - { $ref: '#/components/parameters/Page' }
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/SearchBookingPlaceDTO' }
+        - { $ref: '#/components/parameters/Size' }
+        - in: query
+          name: state
+          required: false
+          schema: { $ref: '#/components/schemas/BookingState' }
       responses:
         '200':
           description: Reservas del lugar
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ResponseBookingDTOList' }
+              schema: { $ref: '#/components/schemas/ResponseBookingPage' }
 
   /api/places/{placeId}/stats:
     get:
@@ -420,13 +444,16 @@ paths:
   ############################
   # BOOKINGS
   ############################
-  /api/bookings/{id}:
+  /api/places/{placeId}/bookings:
     post:
-      summary: Crear reserva para el lugar {id}
+      summary: Crear reserva para el lugar {placeId}
       tags: [Bookings]
       security: [ { bearerAuth: [] } ]
       parameters:
-        - { $ref: '#/components/parameters/PathId' }
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -439,6 +466,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
 
+  /api/bookings/{id}:
     delete:
       summary: Cancelar/eliminar reserva
       tags: [Bookings]
@@ -508,10 +536,8 @@ paths:
       tags: [Favorites]
       security: [ { bearerAuth: [] } ]
       parameters:
-        - in: query
-          name: page
-          required: false
-          schema: { type: integer, minimum: 0, default: 0 }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Size' }
       responses:
         '200':
           description: Página de favoritos
@@ -534,8 +560,7 @@ paths:
           description: true/false
           content:
             application/json:
-              schema:
-                type: boolean
+              schema: { $ref: '#/components/schemas/ResponseBoolean' }
 
   /api/favorites/count/{placeId}:
     get:
@@ -551,14 +576,12 @@ paths:
           description: Conteo
           content:
             application/json:
-              schema:
-                type: integer
-                format: int64
+              schema: { $ref: '#/components/schemas/ResponseLong' }
 
   ############################
   # COMMENTS (responder)
   ############################
-  /api/comments/{commentId}/reply/{idUser}:
+  /api/comments/{commentId}/reply/{userId}:
     post:
       summary: Responder comentario (anfitrión del lugar)
       tags: [Comments]
@@ -569,7 +592,7 @@ paths:
           required: true
           schema: { type: string }
         - in: path
-          name: idUser
+          name: userId
           required: true
           schema: { type: string }
       requestBody:
@@ -639,10 +662,15 @@ components:
       required: true
       schema: { type: string }
     Page:
-      in: path
+      in: query
       name: page
-      required: true
-      schema: { type: integer, minimum: 0 }
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    Size:
+      in: query
+      name: size
+      required: false
+      schema: { type: integer, minimum: 1, default: 10 }
 
   responses:
     BadRequest:
@@ -663,6 +691,18 @@ components:
         error: { type: boolean, example: false }
         data:  { type: string, example: "ok" }
 
+    ResponseBoolean:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { type: boolean, example: true }
+
+    ResponseLong:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { type: integer, format: int64, example: 12 }
+
     ResponseToken:
       type: object
       properties:
@@ -674,58 +714,6 @@ components:
       properties:
         error: { type: boolean, example: false }
         data:  { $ref: '#/components/schemas/UserDTO' }
-
-    ResponsePlaceDTOList:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:
-          type: array
-          items: { $ref: '#/components/schemas/PlaceDTO' }
-
-    ResponsePlaceDetailDTO:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:  { $ref: '#/components/schemas/PlaceDetailDTO' }
-
-    ResponsePlaceStatsDTO:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:  { $ref: '#/components/schemas/PlaceStatsDTO' }
-
-    ResponseBookingDTOList:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:
-          type: array
-          items: { $ref: '#/components/schemas/BookingDTO' }
-
-    ResponseCommentDTOList:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:
-          type: array
-          items: { $ref: '#/components/schemas/CommentDTO' }
-
-    ResponseServicesList:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:
-          type: array
-          items: { $ref: '#/components/schemas/Services' }
-
-    ResponseMap:
-      type: object
-      properties:
-        error: { type: boolean, example: false }
-        data:
-          type: object
-          additionalProperties: true
 
     ResponsePlacePage:
       type: object
@@ -741,6 +729,64 @@ components:
             totalPages:    { type: integer, example: 3 }
             size:          { type: integer, example: 10 }
             number:        { type: integer, example: 0 }
+
+    ResponseBookingPage:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items: { $ref: '#/components/schemas/BookingDTO' }
+            totalElements: { type: integer, format: int64, example: 23 }
+            totalPages:    { type: integer, example: 3 }
+            size:          { type: integer, example: 10 }
+            number:        { type: integer, example: 0 }
+
+    ResponsePlaceDetailDTO:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/PlaceDetailDTO' }
+
+    ResponsePlaceStatsDTO:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/PlaceStatsDTO' }
+
+    ResponseServicesList:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Services' }
+
+    ResponseCommentPage:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items: { $ref: '#/components/schemas/CommentDTO' }
+            totalElements: { type: integer, format: int64, example: 10 }
+            totalPages:    { type: integer, example: 1 }
+            size:          { type: integer, example: 10 }
+            number:        { type: integer, example: 0 }
+
+    ResponseMap:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: object
+          additionalProperties: true
 
     # DTOs AUTH/USERS
     LoginDTO:
@@ -774,7 +820,7 @@ components:
       required: [name, birthDate]
       properties:
         name:      { type: string, maxLength: 100 }
-        phone:     { type: string, maxLength: 10, nullable: true }
+        phone:     { type: string, maxLength: 15, nullable: true }
         photoUrl:  { type: string, maxLength: 300, nullable: true }
         birthDate: { type: string, format: date }
 
@@ -822,6 +868,16 @@ components:
         photoUrl:  { type: string }
         createdAt: { type: string, format: date-time }
 
+    HostDTO:
+      type: object
+      required: [about, phone, documentType, documentNumber]
+      properties:
+        about:          { type: string, maxLength: 500 }
+        phone:          { type: string, maxLength: 15 }
+        documentType:   { type: string, enum: [CC, CE, PASSPORT] }
+        documentNumber: { type: string, maxLength: 20 }
+        emergencyPhone: { type: string, maxLength: 15, nullable: true }
+
     # DTOs PLACES
     CreatePlaceDTO:
       type: object
@@ -835,60 +891,46 @@ components:
         country:     { type: string, maxLength: 30 }
         department:  { type: string, maxLength: 30 }
         city:        { type: string, maxLength: 30 }
-        neighborhood:{ type: string, maxLength: 20, nullable: true }
+        neighborhood: { type: string, maxLength: 20, nullable: true }
         street:      { type: string, nullable: true }
         postalCode:  { type: string, pattern: '^[0-9A-Za-z]{4,10}$' }
         amenities:
           type: array
           items: { $ref: '#/components/schemas/Services' }
-        latitude:    { type: number, format: float }
-        longitude:   { type: number, format: float }
+        latitude:    { type: number, format: double }
+        longitude:   { type: number, format: double }
 
     EditPlaceDTO:
       allOf:
         - $ref: '#/components/schemas/CreatePlaceDTO'
 
-    ListPlaceDTO:
-      type: object
-      properties:
-        city:         { type: string, maxLength: 30, nullable: true }
-        checkIn:      { type: string, format: date-time, nullable: true }
-        checkOut:     { type: string, format: date-time, nullable: true }
-        guest_number: { type: integer, nullable: true }
-        minimum:      { type: number, format: double, nullable: true }
-        maximum:      { type: number, format: double, nullable: true }
-        list:
-          type: array
-          items: { $ref: '#/components/schemas/Services' }
-          nullable: true
-
     PlaceDTO:
       type: object
       properties:
-        title:           { type: string }
-        price:           { type: number, format: double }
-        photo_url:       { type: string }
-        average_rating:  { type: number, format: double }
-        city:            { type: string }
+        title:          { type: string }
+        price:          { type: number, format: double }
+        photoUrl:       { type: string }
+        averageRating:  { type: number, format: double }
+        city:           { type: string }
 
     PlaceDetailDTO:
       type: object
       properties:
-        id:             { type: string }
-        latitude:       { type: number, format: float }
-        longitude:      { type: number, format: float }
-        price:          { type: number, format: double }
-        pics_url:
+        id:            { type: string }
+        latitude:      { type: number, format: double }
+        longitude:     { type: number, format: double }
+        price:         { type: number, format: double }
+        picsUrl:
           type: array
           items: { type: string }
-        description:    { type: string }
-        services:
+        description:   { type: string }
+        amenities:
           type: array
           items: { $ref: '#/components/schemas/Services' }
-        title:          { type: string }
-        capacity:       { type: integer }
-        averageRatings: { type: number, format: double }
-        userDetailDTO:  { $ref: '#/components/schemas/UserDetailDTO' }
+        title:         { type: string }
+        capacity:      { type: integer }
+        averageRating: { type: number, format: double }
+        user:          { $ref: '#/components/schemas/UserDetailDTO' }
 
     PlaceStatsDTO:
       type: object
@@ -898,40 +940,32 @@ components:
 
     PlaceEntitySummary:
       type: object
-      description: Resumen de entidad Place para favoritos
+      description: Resumen de entidad Place para favoritos/listas
       properties:
-        id:             { type: string }
-        title:          { type: string }
-        price:          { type: number, format: double }
-        city:           { type: string }
-        averageRatings: { type: number, format: double }
+        id:            { type: string }
+        title:         { type: string }
+        price:         { type: number, format: double }
+        city:          { type: string }
+        averageRating: { type: number, format: double }
+        photoUrl:      { type: string, nullable: true }
 
     # DTOs BOOKINGS/COMMENTS
     CreateBookingDTO:
       type: object
-      required: [checkIn, checkOut, guest_number]
+      required: [checkIn, checkOut, guestNumber]
       properties:
-        checkIn:      { type: string, format: date-time }
-        checkOut:     { type: string, format: date-time }
-        guest_number: { type: integer, minimum: 1 }
+        checkIn:     { type: string, format: date-time }
+        checkOut:    { type: string, format: date-time }
+        guestNumber: { type: integer, minimum: 1 }
 
     BookingDTO:
       type: object
       properties:
         bookingState: { $ref: '#/components/schemas/BookingState' }
         user:         { $ref: '#/components/schemas/UserDTO' }
-        checkIn:      { type: string, format: date }
-        checkOut:     { type: string, format: date }
-        guest_number: { type: integer }
-
-    SearchBookingDTO:
-      type: object
-      properties:
-        state: { $ref: '#/components/schemas/BookingState', nullable: true }
-
-    SearchBookingPlaceDTO:
-      allOf:
-        - $ref: '#/components/schemas/SearchBookingDTO'
+        checkIn:      { type: string, format: date-time }
+        checkOut:     { type: string, format: date-time }
+        guestNumber:  { type: integer }
 
     CreateCommentDTO:
       type: object

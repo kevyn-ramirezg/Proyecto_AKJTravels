@@ -50,11 +50,11 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<>(false, "registro exitoso :)"));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<ResponseDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception{
-        TokenDTO token = userService.login(loginDTO);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseDTO<>(false, token));
-    }
+  @PostMapping("/login")
+  public ResponseEntity<ResponseDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception{
+    TokenDTO token = userService.login(loginDTO);
+    return ResponseEntity.ok(new ResponseDTO<>(false, token)); // 200
+  }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> requestReset(@Valid @RequestBody RequestResetPasswordDTO dto) throws Exception{

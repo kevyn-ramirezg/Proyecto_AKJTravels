@@ -24,12 +24,13 @@ public class BookingController {
     private final BookingService bookingService;
     private final CurrentUserService currentUserService;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<ResponseDTO<String>> create(@PathVariable String id, @Valid @RequestBody CreateBookingDTO createBookingDTO) throws Exception {
-        String userId = currentUserService.getCurrentUser();
-        bookingService.create(id, userId, createBookingDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<String>(false, "reserva creada"));
-    }
+  @Deprecated
+  @PostMapping("/{id}") // LEGACY: id = placeId
+  public ResponseEntity<ResponseDTO<String>> create(@PathVariable String id, @Valid @RequestBody CreateBookingDTO dto) throws Exception {
+    String userId = currentUserService.getCurrentUser();
+    bookingService.create(id, userId, dto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<>(false, "reserva creada"));
+  }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO<String>> delete(@PathVariable String id) throws Exception {

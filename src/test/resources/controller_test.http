@@ -7,10 +7,13 @@
 ### -------------------------------------------------------------------
 @hostId = REEMPLAZA_CON_ID_HOST
 @userId = REEMPLAZA_CON_ID_USER
-@placeId = REEMPLAZA_CON_ID_PLACE
-@bookingId = REEMPLAZA_CON_ID_BOOKING
+@placeId = 40ed073c-e260-4a6d-9760-aece23f0e1d3
+@bookingId = a1fad456-acac-4cf6-ad99-b09fcb696b90
 @commentId = REEMPLAZA_CON_ID_COMMENT
-
+# Fechas fijas (formato ISO local: yyyy-MM-ddTHH:mm:ss)
+@checkIn  = 2025-11-20T15:00:00
+@checkOut = 2025-11-22T11:00:00
+@tokenUser = eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiUk9MRV9VU0VSIiwibmFtZSI6IlVzZXIgVGVzdCIsImVtYWlsIjoidXNlckB0ZXN0LmNvbSIsInN1YiI6IjRmMmQxMTliLTM4MzUtNDlmNy04NTUxLTUyMmUzMDg1Mjk5MiIsImlhdCI6MTc2Mjg5MDc1OCwiZXhwIjoxNzYyODk0MzU4fQ.VRJpbGwBshDwK0vyOeMo8cINVvrgSvRpU_KSvpG-btQlViLRtnE92r1i4JhQHQM0
 ### -------------------------------------------------------------------
 ### AUTH – REGISTRO HOST
 ### -------------------------------------------------------------------
@@ -47,6 +50,7 @@ Content-Type: application/json
   "email": "user@test.com",
   "phone": "3110000000",
   "birthDate": "1995-02-02",
+  "photoUrl": "hola",
   "country": "CO",
   "password": "ClaveFuerte1",
   "role": "USER"
@@ -204,6 +208,7 @@ Content-Type: application/json
   "maximum": 400000
 }
 
+
 ### -------------------------------------------------------------------
 ### BOOKINGS – CREAR RESERVA (USER) – Caso OK (5 días adelante)
 ### -------------------------------------------------------------------
@@ -213,13 +218,13 @@ Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
 
 {
-  "checkIn": "{{now+5d}}T15:00:00",
-  "checkOut": "{{now+7d}}T11:00:00",
+  "checkIn": "{{checkIn}}",
+  "checkOut": "{{checkOut}}",
   "guest_number": 2
 }
 > {%
     // Guarda bookingId si tu API lo retorna en data
-    // client.global.set("bookingId", response.body?.data?.id || response.body?.data);
+    client.global.set("bookingId", response.body?.data?.id || response.body?.data);
 %}
 
 ### -------------------------------------------------------------------
@@ -260,9 +265,9 @@ Content-Type: application/json
     // client.global.set("bookingId48", response.body?.data?.id || response.body?.data);
 %}
 
-# @name CancelBooking_fail48
-DELETE {{base}}/api/bookings/{{bookingId48}}
-Authorization: Bearer {{tokenUser}}
+###@name CancelBooking_fail48
+###DELETE {{base}}/api/bookings/{{bookingId48}}
+###Authorization: Bearer {{tokenUser}}
 
 ### -------------------------------------------------------------------
 ### BOOKINGS – CANCELAR (USER) – Caso OK (>48h)

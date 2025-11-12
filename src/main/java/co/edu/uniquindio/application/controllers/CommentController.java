@@ -18,10 +18,22 @@ public class CommentController {
     private final ReplyService replyService;
     private final CurrentUserService currentUserService;
 
-    @PostMapping("/{commentId}/reply/{idUser}")
-    public ResponseEntity<ResponseDTO<String>> reply(@PathVariable String idUser, @PathVariable String commentId, @Valid @RequestBody ReplyDTO replyDTO) throws Exception{
-        String userId = currentUserService.getCurrentUser();
-        replyService.create(idUser, commentId, replyDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "respuesta a comentario exitosa"));
-    }
+  @PostMapping("/{commentId}/reply/{userId}")
+  public ResponseEntity<ResponseDTO<String>> reply(
+    @PathVariable String commentId,
+    @PathVariable String userId,
+    @Valid @RequestBody ReplyDTO replyDTO
+  ) throws Exception {
+    // Usa exactamente la misma llamada al servicio que ya tienes
+    replyService.create(userId, commentId, replyDTO);
+    return ResponseEntity.ok(new ResponseDTO<>(false, "respuesta a comentario exitosa"));
+  }
+  @Deprecated
+  @PostMapping("/{commentId}/reply/{idUser}")
+  public ResponseEntity<ResponseDTO<String>> replyLegacy(
+    @PathVariable String commentId,
+    @PathVariable("idUser") String userId,
+    @Valid @RequestBody ReplyDTO replyDTO) throws Exception {
+    return reply(commentId, userId, replyDTO);
+  }
 }
