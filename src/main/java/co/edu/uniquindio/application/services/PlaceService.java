@@ -5,6 +5,7 @@ import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.enums.Services;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface PlaceService {
     void delete(String id) throws Exception;
     List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception;
     List<Services> listAllServices(String id) throws Exception;
-    PlaceStatsDTO stats(String placeId, LocalDateTime from, LocalDateTime to) throws Exception;
+    PlaceStatsDTO stats(String placeId, LocalDate from, LocalDate to) throws Exception;
     List<PlaceDTO> listAllPlacesHost(String id, int page) throws Exception;
     PlaceDetailDTO get(String id) throws Exception;
 

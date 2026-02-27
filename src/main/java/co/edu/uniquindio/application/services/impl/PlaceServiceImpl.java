@@ -25,7 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import co.edu.uniquindio.application.services.GeoUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -153,13 +155,17 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public PlaceStatsDTO stats(String placeId, LocalDateTime from, LocalDateTime to) throws Exception {
-        // valida que el place exista (si no lo haces ya en otro método)
-        var place = placeRepository.findById(placeId)
+    public PlaceStatsDTO stats(String placeId, LocalDate from, LocalDate to) throws Exception {
+
+        placeRepository.findById(placeId)
                 .orElseThrow(() -> new co.edu.uniquindio.application.exceptions.ResourceNotFoundException("No existe el alojamiento"));
 
-        long reservations = bookingRepository.countByPlaceIdBetween(placeId, from, to);
-        Double avg = commentRepository.avgRatingByPlaceIdBetween(placeId, from, to);
+        // Convertimos fechas (type="date") a rangos de tiempo
+        LocalDateTime fromDT = (from == null) ? null : from.atStartOfDay();
+        LocalDateTime toDT   = (to == null) ? null : to.atTime(LocalTime.MAX); // 23:59:59.999...
+
+        long reservations = bookingRepository.countByPlaceIdBetween(placeId, fromDT, toDT);
+        Double avg = commentRepository.avgRatingByPlaceIdBetween(placeId, fromDT, toDT);
         double averageRating = (avg == null) ? 0.0 : avg;
 
         return new PlaceStatsDTO(reservations, averageRating);
