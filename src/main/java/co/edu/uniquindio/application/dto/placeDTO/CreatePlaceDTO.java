@@ -15,10 +15,14 @@ public record CreatePlaceDTO(@NotBlank(message = "El título no puede estar vac�
                              @NotBlank @Size(min = 20, max = 500, message = "La descripción debe tener entre 20 y 500 caracteres")
                              String description,
                              @NotNull @Positive double price,
-                             @JsonProperty("pics_url") @NotEmpty @Size(min = 1, max = 10) List<String> picsUrl,
+                             @JsonProperty("pics_url")
+                             @Size(max = 10, message = "Máximo 10 imágenes")
+                             List<String> picsUrl,
                              @NotNull(message = "el tipo de alojamiento es obligatorio")
                              PlaceType placeType,
-                             @Min(1) @Max(60) int capacity,
+                             @Min(value = 1, message = "La capacidad debe ser mínimo 1")
+                             @Max(value = 60, message = "La capacidad máximo 60")
+                             int capacity,
                              @NotBlank @Length(max=30) String country,
                              @NotBlank @Length(max=30) String department,
                              @NotBlank @Length(max=30) String city,
