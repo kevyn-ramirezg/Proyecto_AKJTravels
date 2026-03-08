@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface PlaceService {
 
-    void create(String id, CreatePlaceDTO createPlaceDTO) throws Exception;
+    String create(String id, CreatePlaceDTO createPlaceDTO) throws Exception;
     void edit(String id, EditPlaceDTO editPlaceDTO) throws Exception;
     void delete(String id) throws Exception;
     List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception;

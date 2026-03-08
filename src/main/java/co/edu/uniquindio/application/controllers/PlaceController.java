@@ -52,10 +52,10 @@ public class PlaceController {
 
     @PreAuthorize("hasRole('HOST')")
     @PostMapping
-    public ResponseEntity<ResponseDTO<String>> create( @Valid @RequestBody CreatePlaceDTO createPlaceDTO) throws Exception {
-        String id = getCurrentUserId();
-        placeService.create(id, createPlaceDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "alojamiento creado "));
+    public ResponseEntity<ResponseDTO<String>> create(@Valid @RequestBody CreatePlaceDTO dto) throws Exception {
+        String hostId = getCurrentUserId();
+        String placeId = placeService.create(hostId, dto);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, placeId));
     }
 
     @PutMapping("/{id}")

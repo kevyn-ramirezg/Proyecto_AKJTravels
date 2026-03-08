@@ -47,7 +47,7 @@ public class PlaceServiceImpl implements PlaceService {
 
 
     @Override
-    public void create(String id, CreatePlaceDTO createPlaceDTO) throws Exception {
+    public String create(String id, CreatePlaceDTO createPlaceDTO) throws Exception {
 
         Optional<User> optionalUser = userRepository.findById(id);
 
@@ -61,6 +61,7 @@ public class PlaceServiceImpl implements PlaceService {
         Place place = placeMapper.toEntity(createPlaceDTO);
         place.setUser(optionalUser.get());
         placeRepository.save(place);
+        return place.getId();
 
     }
 

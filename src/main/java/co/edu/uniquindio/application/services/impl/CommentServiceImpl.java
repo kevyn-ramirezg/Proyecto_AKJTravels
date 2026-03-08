@@ -41,13 +41,11 @@ public class CommentServiceImpl implements CommentService {
         Pageable pageable = PageRequest.of(page, 10);
 
         Page<Comment> list = commentRepository.findAllByPlaceId(id, pageable);
-        if(list.isEmpty()){
-            throw new ResourceNotFoundException("no se encontraron comentarios");
-        }
+
+        // ✅ Si no hay comentarios, devuelves vacío (no es 404)
         return list.stream()
                 .map(listCommentsMapper::ToCommentDTO)
                 .toList();
-
     }
 
     @Override
