@@ -44,7 +44,7 @@ dependencies {
 
     // Driver de base de datos - MariaDB (LOCAL)
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
-
+    runtimeOnly 'org.postgresql:postgresql:42.7.8'
     // Cloudinary
     implementation 'com.cloudinary:cloudinary-http5:2.3.2'
 
