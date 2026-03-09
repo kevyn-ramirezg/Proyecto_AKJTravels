@@ -30,14 +30,13 @@ public class Booking {
     private BookingState bookingState;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "place_id", nullable = false)
     private Place place;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
-
 }

@@ -159,14 +159,28 @@ public class PlaceServiceImpl implements PlaceService {
     public PlaceStatsDTO stats(String placeId, LocalDate from, LocalDate to) throws Exception {
 
         placeRepository.findById(placeId)
-                .orElseThrow(() -> new co.edu.uniquindio.application.exceptions.ResourceNotFoundException("No existe el alojamiento"));
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
 
-        // Convertimos fechas (type="date") a rangos de tiempo
         LocalDateTime fromDT = (from == null) ? null : from.atStartOfDay();
-        LocalDateTime toDT   = (to == null) ? null : to.atTime(LocalTime.MAX); // 23:59:59.999...
+        LocalDateTime toDT = (to == null) ? null : to.atTime(LocalTime.MAX);
 
-        long reservations = bookingRepository.countByPlaceIdBetween(placeId, fromDT, toDT);
-        Double avg = commentRepository.avgRatingByPlaceIdBetween(placeId, fromDT, toDT);
+        long reservations;
+        Double avg;
+
+        if (fromDT == null && toDT == null) {
+            reservations = bookingRepository.countByPlaceId(placeId);
+            avg = commentRepository.avgRatingByPlaceId(placeId);
+        } else if (fromDT != null && toDT == null) {
+            reservations = bookingRepository.countByPlaceIdAndCheckInGreaterThanEqual(placeId, fromDT);
+            avg = commentRepository.avgRatingByPlaceIdFrom(placeId, fromDT);
+        } else if (fromDT == null) {
+            reservations = bookingRepository.countByPlaceIdAndCheckOutLessThanEqual(placeId, toDT);
+            avg = commentRepository.avgRatingByPlaceIdTo(placeId, toDT);
+        } else {
+            reservations = bookingRepository.countByPlaceIdAndCheckInGreaterThanEqualAndCheckOutLessThanEqual(placeId, fromDT, toDT);
+            avg = commentRepository.avgRatingByPlaceIdBetween(placeId, fromDT, toDT);
+        }
+
         double averageRating = (avg == null) ? 0.0 : avg;
 
         return new PlaceStatsDTO(reservations, averageRating);

@@ -33,17 +33,16 @@ public interface BookingRepository extends JpaRepository<Booking, String>, JpaSp
     List<Booking> findByUser(User user);
 
     // Conteo de reservas por lugar en un rango (usamos checkIn/checkOut)
-    @Query("""
-        SELECT COUNT(b)
-        FROM Booking b
-        WHERE b.place.id = :placeId
-          AND (:from IS NULL OR b.checkIn  >= :from)
-          AND (:to   IS NULL OR b.checkOut <= :to)
-        """)
-    long countByPlaceIdBetween(
-            @Param("placeId") String placeId,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to
+    long countByPlaceId(String placeId);
+
+    long countByPlaceIdAndCheckInGreaterThanEqual(String placeId, LocalDateTime from);
+
+    long countByPlaceIdAndCheckOutLessThanEqual(String placeId, LocalDateTime to);
+
+    long countByPlaceIdAndCheckInGreaterThanEqualAndCheckOutLessThanEqual(
+            String placeId,
+            LocalDateTime from,
+            LocalDateTime to
     );
 
     @Query("""

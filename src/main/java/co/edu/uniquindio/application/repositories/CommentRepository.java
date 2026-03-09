@@ -28,16 +28,41 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
                                               @Param("endDate")LocalDateTime endDate);
 
 
-    @org.springframework.data.jpa.repository.Query("""
-    SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
-    FROM Comment c
-    WHERE c.place.id = :placeId
-      AND (:from IS NULL OR c.createdAt >= :from)
-      AND (:to   IS NULL OR c.createdAt <= :to)
-""")
-    Double avgRatingByPlaceIdBetween(@org.springframework.data.repository.query.Param("placeId") String placeId,
-                                     @org.springframework.data.repository.query.Param("from") LocalDateTime from,
-                                     @org.springframework.data.repository.query.Param("to") LocalDateTime to);
+    @Query("""
+        SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
+        FROM Comment c
+        WHERE c.place.id = :placeId
+    """)
+    Double avgRatingByPlaceId(@Param("placeId") String placeId);
+
+    @Query("""
+        SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
+        FROM Comment c
+        WHERE c.place.id = :placeId
+          AND c.createdAt >= :from
+    """)
+    Double avgRatingByPlaceIdFrom(@Param("placeId") String placeId,
+                                  @Param("from") LocalDateTime from);
+
+    @Query("""
+        SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
+        FROM Comment c
+        WHERE c.place.id = :placeId
+          AND c.createdAt <= :to
+    """)
+    Double avgRatingByPlaceIdTo(@Param("placeId") String placeId,
+                                @Param("to") LocalDateTime to);
+
+    @Query("""
+        SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
+        FROM Comment c
+        WHERE c.place.id = :placeId
+          AND c.createdAt >= :from
+          AND c.createdAt <= :to
+    """)
+    Double avgRatingByPlaceIdBetween(@Param("placeId") String placeId,
+                                     @Param("from") LocalDateTime from,
+                                     @Param("to") LocalDateTime to);
 
 
     @Query("""
