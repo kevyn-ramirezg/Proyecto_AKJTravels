@@ -53,7 +53,7 @@ public class FavoriteController {
     return ResponseEntity.noContent().build();
   }
 
-  /** Lista paginada de mis favoritos (devuelve Place directamente). */
+  /** Lista paginada de mis favoritos (devuelve Place directamente).. */
   @GetMapping("/me")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Page<Place>> listMyFavorites(
