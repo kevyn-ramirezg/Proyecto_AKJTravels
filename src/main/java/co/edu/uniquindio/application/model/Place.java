@@ -34,8 +34,7 @@ public class Place {
     @Column(name = "pics_url")
     private List<String> pics_url;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @ElementCollection
