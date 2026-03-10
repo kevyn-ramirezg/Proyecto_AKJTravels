@@ -10,6 +10,7 @@ public interface BookingService {
 
     void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception;
     void delete(String id) throws Exception;
+    void rejectByHost(String bookingId) throws Exception;
     List<BookingDTO> listBookings(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception;
     List<BookingDTO> listBookingsUser(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception;
     // Nuevo, requerido por el enunciado (no rompe tus llamadas existentes)

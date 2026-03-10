@@ -107,7 +107,28 @@ public class BookingServiceImpl implements BookingService {
             throw new UnauthorizedException("no puedes cancelar esta reserva");
         }
     }
+    @Override
+    public void rejectByHost(String bookingId) throws Exception {
+        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
 
+        if (optionalBooking.isEmpty()) {
+            throw new ResourceNotFoundException("No existe esta reserva");
+        }
+
+        Booking booking = optionalBooking.get();
+        String currentUserId = currentUserService.getCurrentUser();
+
+        if (!Objects.equals(booking.getPlace().getUser().getId(), currentUserId)) {
+            throw new ForbiddenException("No eres el anfitrión de esta reserva");
+        }
+
+        if (booking.getBookingState() != BookingState.PENDING) {
+            throw new ValueConflictException("Solo puedes rechazar reservas en estado PENDING");
+        }
+
+        booking.setBookingState(BookingState.CANCELED);
+        bookingRepository.save(booking);
+    }
     @Override
     public List<BookingDTO> listBookings(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception {
 

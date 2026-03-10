@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/confirm").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/reject").hasRole("HOST")
                         .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER","HOST")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER","HOST")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("USER","HOST")

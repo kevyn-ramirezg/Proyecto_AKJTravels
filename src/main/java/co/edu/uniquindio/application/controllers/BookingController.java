@@ -45,6 +45,13 @@ public class BookingController {
                 .body(new ResponseDTO<>(false, "reserva eliminada"));
     }
 
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<ResponseDTO<String>> rejectByHost(@PathVariable String id) throws Exception {
+        bookingService.rejectByHost(id);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResponseDTO<>(false, "reserva rechazada"));
+    }
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ResponseDTO<String>> confirm(@PathVariable String id) throws Exception {
         bookingService.confirm(id);
