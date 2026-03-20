@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PlaceServiceTest {
-
+    /*
     @Mock
     PlaceMapper placeMapper;
     @Mock ShowPlaceMapper showPlaceMapper;

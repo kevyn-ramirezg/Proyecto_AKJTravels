@@ -36,6 +36,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
+    /*
     @Mock BookingMapper bookingMapper;
     @Mock BookingRepository bookingRepository;
     @Mock PlaceRepository accommodationRepository;

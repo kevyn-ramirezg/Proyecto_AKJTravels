@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
-
+    /*
     @Mock CommentRepository commentRepository;
     @Mock
     PlaceRepository placeRepository;

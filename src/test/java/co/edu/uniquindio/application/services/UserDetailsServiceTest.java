@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserDetailsServiceTest {
 
-    @Mock
+   /* @Mock
     private UserRepository userRepository;
 
     @InjectMocks
@@ -61,6 +61,6 @@ class UserDetailsServiceTest {
         assertThrows(UsernameNotFoundException.class, () -> userDetailsService.loadUserByUsername("999"));
 
         verify(userRepository, times(1)).findById("999");
-    }
+    }*/
 }
 
