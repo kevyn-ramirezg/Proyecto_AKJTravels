@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.controllers;
 
+import co.edu.uniquindio.application.dto.favoriteDTO.FavoritePlaceDTO;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.repositories.FavoriteRepository;
 import co.edu.uniquindio.application.services.CurrentUserService;
@@ -27,24 +28,22 @@ public class FavoriteController {
   private final FavoriteService favoriteService;
   private final CurrentUserService currentUserService;
 
-  public FavoriteController(FavoriteRepository favoriteRepository, FavoriteService favoriteService,
+  public FavoriteController(FavoriteRepository favoriteRepository,
+                            FavoriteService favoriteService,
                             CurrentUserService currentUserService) {
-      this.favoriteRepository = favoriteRepository;
-
-      this.favoriteService = favoriteService;
+    this.favoriteRepository = favoriteRepository;
+    this.favoriteService = favoriteService;
     this.currentUserService = currentUserService;
   }
 
-  /** Marca un lugar como favorito (idempotente). */
   @PostMapping("/{placeId}")
-  @PreAuthorize("hasRole('USER')") // ⚠️ si tu rol de huésped es GUEST, cámbialo a hasRole('GUEST')
+  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> add(@PathVariable String placeId) throws Exception {
-    String userId = currentUserService.getCurrentUser(); // ← ID consistente con el resto del proyecto
+    String userId = currentUserService.getCurrentUser();
     favoriteService.addFavorite(userId, placeId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  /** Quita un lugar de favoritos (idempotente). */
   @DeleteMapping("/{placeId}")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> remove(@PathVariable String placeId) throws Exception {
@@ -53,20 +52,18 @@ public class FavoriteController {
     return ResponseEntity.noContent().build();
   }
 
-  /** Lista paginada de mis favoritos (devuelve Place directamente).. */
   @GetMapping("/me")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<Page<Place>> listMyFavorites(
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+  public ResponseEntity<Page<FavoritePlaceDTO>> listMyFavorites(
+          @RequestParam(defaultValue = "0") int page,
+          @RequestParam(defaultValue = "10") int size
   ) throws Exception {
     String userId = currentUserService.getCurrentUser();
     Pageable pageable = PageRequest.of(page, size);
-    Page<Place> result = favoriteService.listMyFavorites(userId, pageable);
+    Page<FavoritePlaceDTO> result = favoriteService.listMyFavorites(userId, pageable);
     return ResponseEntity.ok(result);
   }
 
-  /** ¿Es favorito este place para mí? */
   @GetMapping("/me/{placeId}")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Boolean> isMyFavorite(@PathVariable String placeId) throws Exception {
@@ -74,20 +71,19 @@ public class FavoriteController {
     return ResponseEntity.ok(favoriteService.isMyFavorite(userId, placeId));
   }
 
-  /** Conteo de favoritos por Place. */
   @GetMapping("/count/{placeId}")
   public ResponseEntity<Long> count(@PathVariable String placeId) {
     return ResponseEntity.ok(favoriteService.countFavoritesByPlace(placeId));
   }
+
   @GetMapping("/count/{placeId}/between")
   public long countBetween(
           @PathVariable String placeId,
           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
-  )
-  {
+  ) {
     LocalDateTime fromDT = (from == null) ? null : from.atStartOfDay();
-    LocalDateTime toDT   = (to == null) ? null : to.atTime(LocalTime.MAX);
+    LocalDateTime toDT = (to == null) ? null : to.atTime(LocalTime.MAX);
     return favoriteRepository.countByPlaceIdBetween(placeId, fromDT, toDT);
   }
 }

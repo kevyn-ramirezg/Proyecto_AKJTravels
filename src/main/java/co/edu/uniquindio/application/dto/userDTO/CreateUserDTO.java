@@ -16,7 +16,6 @@ public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
                             String phone,
                             @NotNull(message = "Fecha de nacimiento requerida")
                             LocalDate birthDate,
-                            @NotBlank(message = "País requerido")
                             String country,
                             String photoUrl,
                             @NotBlank(message = "Contraseña requerida")
