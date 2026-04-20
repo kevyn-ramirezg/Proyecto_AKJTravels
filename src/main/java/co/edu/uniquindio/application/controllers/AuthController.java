@@ -10,7 +10,7 @@ import co.edu.uniquindio.application.dto.userDTO.ResetPasswordDTO;
 import co.edu.uniquindio.application.services.PasswordResetService;
 import co.edu.uniquindio.application.services.UserService;
 import jakarta.validation.Valid;
-import lombok.Generated;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping({"/api/auth"})
+@RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
@@ -81,11 +82,5 @@ public class AuthController {
     public ResponseEntity<ResponseDTO<String>> resetPassword(@RequestBody @Valid ResetPasswordDTO dto) throws Exception {
         passwordResetService.resetPassword(dto);
         return ResponseEntity.ok(new ResponseDTO<>(false, "Contraseña cambiada exitosamente"));
-    }
-
-    @Generated
-    public AuthController(final UserService userService, final PasswordResetService passwordResetService) {
-        this.userService = userService;
-        this.passwordResetService = passwordResetService;
     }
 }

@@ -4,8 +4,10 @@ import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.UserBookingDTO;
+import co.edu.uniquindio.application.dto.commentDTO.CreateCommentDTO;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.services.BookingService;
+import co.edu.uniquindio.application.services.CommentService;
 import co.edu.uniquindio.application.services.CurrentUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final CommentService commentService;
     private final CurrentUserService currentUserService;
 
     @PostMapping("/{id}")
@@ -78,5 +81,16 @@ public class BookingController {
         String userId = currentUserService.getCurrentUser();
         List<UserBookingDTO> rows = bookingService.listUserBookings(userId);
         return ResponseEntity.ok(new ResponseDTO<>(false, rows));
+    }
+
+    // 👇 NUEVO: endpoint para crear comentario/rating de una reserva completada
+    @PostMapping("/{bookingId}/comments")
+    public ResponseEntity<ResponseDTO<String>> createComment(
+            @PathVariable String bookingId,
+            @Valid @RequestBody CreateCommentDTO createCommentDTO) throws Exception {
+        String userId = currentUserService.getCurrentUser();
+        commentService.createComment(bookingId, userId, createCommentDTO);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseDTO<>(false, "comentario creado exitosamente"));
     }
 }

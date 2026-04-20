@@ -23,4 +23,11 @@ public interface BookingService {
                                          Integer guests) throws Exception;
 
     List<UserBookingDTO> listUserBookings(String userId) throws Exception;
+
+    /**
+     * Actualiza el estado de una booking a COMPLETED si su checkOut ya pasó.
+     * @param bookingId el ID de la booking a actualizar
+     * @return true si fue actualizada, false si no cumple las condiciones
+     */
+    boolean updateStatusIfCompleted(String bookingId) throws Exception;
 }

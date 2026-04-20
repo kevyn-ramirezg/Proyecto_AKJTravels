@@ -14,18 +14,22 @@ import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
 import co.edu.uniquindio.application.repositories.CommentRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
+import co.edu.uniquindio.application.services.BookingService;
 import co.edu.uniquindio.application.services.CommentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
@@ -34,6 +38,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
 
     @Override
     public List<CommentDTO> listComments(String id, int page) throws Exception {
@@ -50,10 +55,20 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void createComment(String placeId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
+    public void createComment(String bookingId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
 
-        Booking booking = bookingRepository.findById(placeId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva"));
+
+        // 🔄 NUEVO: Intentar actualizar el estado si la reserva ha vencido
+        // Solo si está CONFIRMED Y el checkOut ya pasó
+        if (booking.getBookingState() == BookingState.CONFIRMED 
+                && booking.getCheckOut().isBefore(LocalDateTime.now())) {
+            log.info("Actualizando booking {} a COMPLETED automáticamente", bookingId);
+            booking.setBookingState(BookingState.COMPLETED);
+            bookingRepository.save(booking);
+            bookingRepository.flush(); // Asegurar que se persista inmediatamente
+        }
 
         if (booking.getBookingState() != BookingState.COMPLETED) {
             throw new ForbiddenException("No puedes comentar si tu reserva aún no ha finalizado");
@@ -66,7 +81,7 @@ public class CommentServiceImpl implements CommentService {
             throw new ForbiddenException("No puedes comentar una reserva que no te pertenece");
         }
 
-        if (commentRepository.existsByBookingId(placeId)) {
+        if (commentRepository.existsByBookingId(bookingId)) {
             throw new ForbiddenException("Ya realizaste un comentario para esta reserva");
         }
 

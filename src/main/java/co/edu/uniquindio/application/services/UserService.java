@@ -14,7 +14,6 @@ public interface UserService {
     // Ya existente: listado/versión resumida
     UserDTO get(String id) throws Exception;
 
-    void edit(String id, EditUserDTO editUserDTO) throws Exception;
 
     void addDataHost(String id, HostDTO hostDTO) throws Exception;
 

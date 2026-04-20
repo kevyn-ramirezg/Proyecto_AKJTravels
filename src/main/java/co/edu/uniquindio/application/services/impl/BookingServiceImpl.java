@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -222,5 +223,38 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream()
                 .map(bookingMapper::toUserBookingDTO)
                 .toList();
+    }
+
+    /**
+     * Actualiza el estado de una booking a COMPLETED si su checkOut ya pasó.
+     * @param bookingId el ID de la booking a actualizar
+     * @return true si fue actualizada, false si no cumple las condiciones
+     */
+    @Override
+    @Transactional
+    public boolean updateStatusIfCompleted(String bookingId) throws Exception {
+        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
+        
+        if (optionalBooking.isEmpty()) {
+            return false;
+        }
+        
+        Booking booking = optionalBooking.get();
+        
+        // Si NO está CONFIRMED, no hacer nada
+        if (booking.getBookingState() != BookingState.CONFIRMED) {
+            return false;
+        }
+        
+        // Si el checkOut NO ha pasado aún, no hacer nada
+        if (booking.getCheckOut().isAfter(LocalDateTime.now())) {
+            return false;
+        }
+        
+        // Actualizar a COMPLETED
+        booking.setBookingState(BookingState.COMPLETED);
+        bookingRepository.save(booking);
+        
+        return true;
     }
 }

@@ -13,8 +13,6 @@ public class CurrentUserServiceImpl implements CurrentUserService {
         org.springframework.security.core.userdetails.User user =
                 (org.springframework.security.core.userdetails.User) SecurityContextHolder
                         .getContext().getAuthentication().getPrincipal();
-        System.out.println(user.getUsername());
-        System.out.println(user.getAuthorities());
         return user.getUsername();
     }
 }

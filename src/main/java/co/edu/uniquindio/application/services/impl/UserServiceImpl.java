@@ -71,19 +71,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDTO(optionalUser.get());
     }
 
-    @Override
-    public void edit(String id, EditUserDTO editUserDTO) throws Exception {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-
-        if (editUserDTO.photoUrl() != null && !imageValidators.isValid(editUserDTO.photoUrl())) {
-            throw new ValueConflictException("El formato de imagen no es valido");
-        }
-
-        // Edit "completo" vía mapper (si tu mapper toca email, allí se controla)
-        userMapper.editUserFromDto(editUserDTO, user);
-        userRepository.save(user);
-    }
 
     @Override
     @Transactional
@@ -142,7 +129,6 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtUtils.generateToken(user.getId(), createClaims(user));
-        System.out.println(user.getId() + "" + user.getRole().toString());
         return new TokenDTO(token);
     }
 

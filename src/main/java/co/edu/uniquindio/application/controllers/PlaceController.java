@@ -2,7 +2,6 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.commentDTO.CommentDTO;
-import co.edu.uniquindio.application.dto.commentDTO.CreateCommentDTO;
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.placeDTO.*;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
@@ -80,13 +79,6 @@ public class PlaceController {
     public ResponseEntity<ResponseDTO<List<CommentDTO>>> listComments(@PathVariable String id, @PathVariable int page) throws Exception {
         List<CommentDTO> list = commentService.listComments(id, page);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
-    }
-
-    @PostMapping("/{bookingId}/comments")
-    public ResponseEntity<ResponseDTO<String>> createComment(@PathVariable String bookingId, @Valid @RequestBody CreateCommentDTO createCommentDTO) throws Exception {
-        String userId = getCurrentUserId();
-        commentService.createComment(bookingId, userId, createCommentDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "comentario creado exitosamente"));
     }
 
     @GetMapping("/{id}/bookings/{page}")
