@@ -12,5 +12,6 @@ public record UserBookingDTO(
         String placeId,
         String placeTitle,
         String mainImage,
-        int capacity
+        int capacity,
+        boolean hasBeenRated
 ) { }

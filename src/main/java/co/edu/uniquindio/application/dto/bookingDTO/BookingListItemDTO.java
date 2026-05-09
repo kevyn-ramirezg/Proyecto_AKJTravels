@@ -11,5 +11,6 @@ public record BookingListItemDTO(
         UserDTO user,
         LocalDateTime checkIn,
         LocalDateTime checkOut,
-        int guest_number
+        int guest_number,
+        boolean hasBeenRated
 ) {}

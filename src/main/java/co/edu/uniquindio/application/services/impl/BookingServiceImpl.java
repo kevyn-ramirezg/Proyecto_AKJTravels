@@ -7,11 +7,13 @@ import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.UserBookingDTO;
 import co.edu.uniquindio.application.exceptions.*;
 import co.edu.uniquindio.application.mappers.BookingMapper;
+import co.edu.uniquindio.application.mappers.UserMapper;
 import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.model.enums.State;
+import co.edu.uniquindio.application.repositories.CommentRepository;
 import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
@@ -34,7 +36,9 @@ import java.util.*;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper bookingMapper;
+    private final UserMapper userMapper;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
     private final CurrentUserServiceImpl currentUserService;
@@ -127,7 +131,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ValueConflictException("Solo puedes rechazar reservas en estado PENDING");
         }
 
-        booking.setBookingState(BookingState.CANCELED);
+        booking.setBookingState(BookingState.REJECTED);
         bookingRepository.save(booking);
     }
     @Override
@@ -208,7 +212,15 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingRepository.findAll(spec)
                 .stream()
-                .map(bookingMapper::toBookingListItemDTO)
+                .map(booking -> new BookingListItemDTO(
+                        booking.getId(),
+                        booking.getBookingState(),
+                        userMapper.toUserDTO(booking.getUser()),
+                        booking.getCheckIn(),
+                        booking.getCheckOut(),
+                        booking.getGuest_number(),
+                        commentRepository.existsByBookingId(booking.getId())
+                ))
                 .toList();
     }
 
@@ -221,7 +233,20 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = bookingRepository.findByUser(user);
 
         return bookings.stream()
-                .map(bookingMapper::toUserBookingDTO)
+                .map(booking -> new UserBookingDTO(
+                        booking.getId(),
+                        booking.getBookingState(),
+                        booking.getCheckIn().toLocalDate(),
+                        booking.getCheckOut().toLocalDate(),
+                        booking.getGuest_number(),
+                        booking.getPlace().getId(),
+                        booking.getPlace().getTitle(),
+                        booking.getPlace().getPics_url() != null && !booking.getPlace().getPics_url().isEmpty()
+                                ? booking.getPlace().getPics_url().get(0)
+                                : null,
+                        booking.getPlace().getCapacity(),
+                        commentRepository.existsByBookingId(booking.getId())
+                ))
                 .toList();
     }
 

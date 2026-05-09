@@ -150,6 +150,7 @@ public interface BookingRepository extends JpaRepository<Booking, String>, JpaSp
         WHERE b.place.id = :placeId
           AND b.checkIn  < :checkOut
           AND b.checkOut > :checkIn
+          AND b.bookingState IN ('CONFIRMED', 'PENDING')
         """)
     boolean existsOverlappingBooking(
             @Param("placeId") String placeId,
