@@ -6,40 +6,45 @@ import co.edu.uniquindio.application.model.Comment;
 import co.edu.uniquindio.application.model.Reply;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.repositories.ReplyRepository;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Mapper(
-  componentModel = MappingConstants.ComponentModel.SPRING,
-  unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
-public abstract class ListCommentsMapper {
+@Component
+@RequiredArgsConstructor
+public class ListCommentsMapper {
 
-  @Autowired
-  protected ReplyRepository replyRepository;   // 👈 se inyecta solo
+  private final ReplyRepository replyRepository;
 
-  @Mapping(target = "id",          source = "id")
-  @Mapping(target = "comment",     source = "comment")
-  @Mapping(target = "commentDate", source = "createdAt")
-  @Mapping(target = "rating",      source = "rating")
-  @Mapping(target = "user",        expression = "java(mapUser(comment.getUser()))")
-  @Mapping(target = "reply",       expression = "java(loadReply(comment.getId()))")
+  public CommentDTO ToCommentDTO(Comment comment) {
+    if (comment == null) {
+      return null;
+    }
 
+    return new CommentDTO(
+            comment.getId(),
+            comment.getComment(),
+            comment.getCreatedAt(),
+            comment.getRating(),
+            mapUser(comment.getUser()),
+            loadReply(comment.getId())
+    );
+  }
 
-  public abstract CommentDTO ToCommentDTO(Comment comment);
+  private UserCommentDTO mapUser(User user) {
+    if (user == null) {
+      return null;
+    }
 
-  protected UserCommentDTO mapUser(User user){
-    if(user == null) return null;
     return new UserCommentDTO(user.getName(), user.getPhotoUrl());
   }
 
-  // 👇 aquí consultamos la tabla de replies SIN tocar la entidad Comment
-  protected String loadReply(String commentId) {
+  private String loadReply(String commentId) {
+    if (commentId == null || commentId.isBlank()) {
+      return null;
+    }
+
     return replyRepository.findByCommentId(commentId)
-      .map(Reply::getReply)
-      .orElse(null);
+            .map(Reply::getReply)
+            .orElse(null);
   }
 }

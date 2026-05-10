@@ -156,14 +156,24 @@ public class BookingServiceImpl implements BookingService {
     public void confirm(String bookingId) throws Exception {
         var b = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe esta reserva"));
+
         // dueño del alojamiento
         String ownerId = b.getPlace().getUser().getId();
+
         if (!Objects.equals(ownerId, currentUserService.getCurrentUser())) {
             throw new ForbiddenException("No eres el anfitrión de este alojamiento");
         }
+
         if (b.getBookingState() != BookingState.PENDING) {
             throw new BadRequestException("Solo se puede confirmar si está PENDING");
         }
+
+        if (!b.getCheckIn().isAfter(LocalDateTime.now())) {
+            b.setBookingState(BookingState.REJECTED);
+            bookingRepository.save(b);
+            throw new BadRequestException("No se puede confirmar una reserva cuya fecha de entrada ya venció.");
+        }
+
         b.setBookingState(BookingState.CONFIRMED);
         bookingRepository.save(b);
     }

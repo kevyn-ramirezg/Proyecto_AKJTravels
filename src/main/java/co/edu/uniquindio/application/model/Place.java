@@ -38,6 +38,7 @@ public class Place {
     private String description;
 
     @ElementCollection
+    @Enumerated(EnumType.STRING)
     @CollectionTable(joinColumns = @JoinColumn(name = "place_id"))
     @Column(name = "amenitie")
     private List<Services> amenities;
@@ -59,6 +60,7 @@ public class Place {
     @Column(nullable = false)
     private double averageRatings;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PlaceType placeType;
 

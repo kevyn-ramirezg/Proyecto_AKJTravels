@@ -162,9 +162,14 @@ public interface BookingRepository extends JpaRepository<Booking, String>, JpaSp
      * Obtiene todas las bookings con estado CONFIRMED cuyo checkOut ya pasó.
      * Usado por el scheduler para actualizar automáticamente a COMPLETED.
      */
+    
     List<Booking> findByBookingStateAndCheckOutBefore(
             BookingState bookingState,
             LocalDateTime checkOut
     );
 
+    List<Booking> findByBookingStateAndCheckInLessThanEqual(
+            BookingState bookingState,
+            LocalDateTime checkIn
+    );
 }

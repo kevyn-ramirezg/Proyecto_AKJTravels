@@ -84,15 +84,21 @@ public class PlaceServiceImpl implements PlaceService {
     //update
     @Override
     public void edit(String id, EditPlaceDTO editPlaceDTO) throws Exception {
-      Place place = placeRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Alojamiento no encontrado"));
+        Place place = placeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Alojamiento no encontrado"));
 
-      if (place.getState() == State.DELETED) {
-        throw new ValueConflictException("No se puede editar un alojamiento eliminado");
-      }
+        if (place.getState() == State.DELETED) {
+            throw new ValueConflictException("No se puede editar un alojamiento eliminado");
+        }
 
-      placeMapper.editPlaceFromDto(editPlaceDTO, place);
-      placeRepository.save(place);
+        String currentUserId = currentUserService.getCurrentUser();
+
+        if (!Objects.equals(place.getUser().getId(), currentUserId)) {
+            throw new UnauthorizedException("No eres el propietario de este alojamiento");
+        }
+
+        placeMapper.editPlaceFromDto(editPlaceDTO, place);
+        placeRepository.save(place);
     }
 
 
@@ -210,10 +216,16 @@ public class PlaceServiceImpl implements PlaceService {
         if (urls == null || urls.isEmpty() || urls.size() > 10) {
             throw new BadRequestException("Debe enviar entre 1 y 10 URLs de imágenes");
         }
+
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
 
-        // guardamos las URLs; la principal es urls.get(0)
+        String currentUserId = currentUserService.getCurrentUser();
+
+        if (!Objects.equals(place.getUser().getId(), currentUserId)) {
+            throw new UnauthorizedException("No eres el propietario de este alojamiento");
+        }
+
         place.setPics_url(urls);
         return placeRepository.save(place);
     }

@@ -5,6 +5,7 @@ import co.edu.uniquindio.application.dto.authDTO.TokenDTO;
 import co.edu.uniquindio.application.dto.hostDTO.HostDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
 import co.edu.uniquindio.application.exceptions.BadRequestException;
+import co.edu.uniquindio.application.exceptions.ForbiddenException;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UserMapper;
@@ -15,6 +16,7 @@ import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.repositories.HostRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.security.JWTUtils;
+import co.edu.uniquindio.application.services.CurrentUserService;
 import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.UserService;
 import co.edu.uniquindio.application.validators.ImageValidators;
@@ -26,12 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-
+    private final CurrentUserServiceImpl currentUserService;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -75,7 +78,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addDataHost(String id, HostDTO hostDTO) throws Exception {
-
+        validateCurrentUser(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         HostProfile host = hostRepository.findByUserId(id)
@@ -93,6 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(String id, DeleteUserDTO deleteUserDTO) throws Exception {
+        validateCurrentUser(id);
         Optional<User> optionalUser = userRepository.findById(id);
 
         if (optionalUser.isEmpty()) {
@@ -134,6 +138,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(String id, EditPasswordDTO editPasswordDTO) throws Exception {
+
+        validateCurrentUser(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -155,8 +161,19 @@ public class UserServiceImpl implements UserService {
         return new UserDetailDTO(u.getId(), u.getName(), u.getLastName(), u.getPhotoUrl(), u.getCreatedAt());
     }
 
+    private void validateCurrentUser(String id) {
+
+        String currentUserId = currentUserService.getCurrentUser();
+
+        if (!Objects.equals(currentUserId, id)) {
+            throw new ForbiddenException("No puedes modificar información de otro usuario");
+        }
+    }
+
     @Override
     public void updateBasicData(String id, EditUserDTO dto) throws Exception {
+        validateCurrentUser(id);
+
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -192,7 +209,7 @@ public class UserServiceImpl implements UserService {
         String ct = file.getContentType() != null ? file.getContentType() : "";
         if (!ct.startsWith("image/")) throw new ValueConflictException("El archivo debe ser una imagen");
         if (file.getSize() > 5L * 1024 * 1024) throw new ValueConflictException("La imagen no debe superar 5 MB");
-
+        validateCurrentUser(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 

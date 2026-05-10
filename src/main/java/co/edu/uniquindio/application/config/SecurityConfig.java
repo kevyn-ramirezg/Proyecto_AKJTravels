@@ -45,21 +45,44 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Endpoints publicos de autenticacion. /api/auth/me requiere token.
+                        .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/auth/reset-password").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+
+                        // Consulta publica de alojamientos. Las operaciones de escritura son solo para anfitriones.
                         .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
-                        .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/confirm").hasRole("HOST")
+
+                        // Reservas: se quita el acceso publico global y se protegen por rol.
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/*").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/confirm").hasRole("HOST")
                         .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/reject").hasRole("HOST")
-                        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER","HOST")
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER","HOST")
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("USER","HOST")
-                        .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("USER","HOST")
-                        .requestMatchers(HttpMethod.POST, "/api/users/*/photo").hasAnyRole("USER","HOST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyRole("USER","HOST")
-                        .requestMatchers("/api/bookings/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/user").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/*/bookings").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/comments").hasAnyRole("USER", "HOST")
+
+                        // Usuarios.
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.POST, "/api/users/*/photo").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyRole("USER", "HOST")
+
+                        // Comentarios, favoritos e imagenes requieren autenticacion.
+                        .requestMatchers(HttpMethod.POST, "/api/comments/*/reply").hasRole("HOST")
+                        .requestMatchers("/api/favorites/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.POST, "/api/images").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/images").hasAnyRole("USER", "HOST")
+
                         .requestMatchers("/app/**").permitAll()
                         .anyRequest().authenticated()
                 )
