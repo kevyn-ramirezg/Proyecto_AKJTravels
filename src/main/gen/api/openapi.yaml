@@ -1,0 +1,552 @@
+openapi: 3.0.3
+info:
+  description: |
+    API REST para centralizar solicitudes académicas (homologaciones, cupos, cancelaciones). La integración con IA es opcional y no condiciona este contrato.
+  title: API Gestión de Solicitudes Académicas
+  version: 1.0.0
+servers:
+- url: http://localhost:8080/api
+paths:
+  /solicitudes:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Solicitud'
+                type: array
+          description: Lista de solicitudes
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Parámetros inválidos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Recurso no encontrado
+      summary: Listar solicitudes
+      x-accepts:
+      - application/json
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitudCreate'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Solicitud creada exitosamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Datos inválidos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Recurso no encontrado
+      summary: Registrar una nueva solicitud
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /solicitudes/{id}:
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Solicitud encontrada
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ID inválido
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud no encontrada
+      summary: Obtener solicitud por ID
+      x-accepts:
+      - application/json
+  /solicitudes/{id}/clasificacion:
+    patch:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClasificacionRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Solicitud clasificada
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Datos inválidos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud no encontrada
+      summary: Clasificar solicitud
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /solicitudes/{id}/prioridad:
+    patch:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrioridadRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Prioridad asignada
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Datos inválidos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud no encontrada
+      summary: Priorizar solicitud
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /solicitudes/{id}/asignacion:
+    patch:
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsignacionRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Responsable asignado
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Datos inválidos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud o responsable no encontrado
+      summary: Asignar responsable administrativo
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /solicitudes/{id}/estado:
+    patch:
+      description: Permite gestionar la solicitud y realizar su cierre cambiando el
+        estado.
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambioEstadoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+          description: Estado actualizado
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Transición inválida o datos incorrectos
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud no encontrada
+      summary: Actualizar estado de la solicitud (atención/cierre)
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /solicitudes/{id}/historial:
+    get:
+      description: "Retorna la trazabilidad (quién, cuándo y qué acción se realizó\
+        )."
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/HistorialMovimiento'
+                type: array
+          description: Historial obtenido
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ID inválido
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No autorizado
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud no encontrada
+      summary: Consultar historial de la solicitud
+      x-accepts:
+      - application/json
+components:
+  schemas:
+    SolicitudCreate:
+      example:
+        descripcion: descripcion
+        solicitanteId: solicitanteId
+        fechaRegistro: 2000-01-23T04:56:07.000+00:00
+        origen: WEB
+      properties:
+        solicitanteId:
+          maxLength: 30
+          minLength: 3
+          type: string
+        descripcion:
+          maxLength: 1000
+          minLength: 10
+          type: string
+        origen:
+          enum:
+          - WEB
+          - CORREO
+          - PRESENCIAL
+          type: string
+        fechaRegistro:
+          description: Fecha de registro (opcional si la genera el sistema)
+          format: date-time
+          type: string
+      required:
+      - descripcion
+      - origen
+      - solicitanteId
+      type: object
+    ClasificacionRequest:
+      example:
+        tipo: HOMOLOGACION
+      properties:
+        tipo:
+          enum:
+          - HOMOLOGACION
+          - CUPO
+          - CANCELACION
+          type: string
+      required:
+      - tipo
+      type: object
+    PrioridadRequest:
+      example:
+        prioridad: ALTA
+      properties:
+        prioridad:
+          enum:
+          - ALTA
+          - MEDIA
+          - BAJA
+          type: string
+      required:
+      - prioridad
+      type: object
+    AsignacionRequest:
+      example:
+        responsableId: 1
+      properties:
+        responsableId:
+          minimum: 1
+          type: integer
+      required:
+      - responsableId
+      type: object
+    CambioEstadoRequest:
+      example:
+        estado: REGISTRADA
+        motivo: motivo
+      properties:
+        estado:
+          enum:
+          - REGISTRADA
+          - CLASIFICADA
+          - PRIORIZADA
+          - ASIGNADA
+          - EN_GESTION
+          - CERRADA
+          - RECHAZADA
+          type: string
+        motivo:
+          description: "Motivo del cambio de estado (opcional, recomendado para cierre)"
+          maxLength: 500
+          type: string
+      required:
+      - estado
+      type: object
+    Solicitud:
+      example:
+        descripcion: descripcion
+        tipo: HOMOLOGACION
+        estado: REGISTRADA
+        solicitanteId: solicitanteId
+        fechaRegistro: 2000-01-23T04:56:07.000+00:00
+        id: 0
+        origen: WEB
+        responsableId: 6
+        prioridad: ALTA
+      properties:
+        id:
+          type: integer
+        solicitanteId:
+          type: string
+        descripcion:
+          type: string
+        origen:
+          enum:
+          - WEB
+          - CORREO
+          - PRESENCIAL
+          type: string
+        tipo:
+          enum:
+          - HOMOLOGACION
+          - CUPO
+          - CANCELACION
+          nullable: true
+          type: string
+        prioridad:
+          enum:
+          - ALTA
+          - MEDIA
+          - BAJA
+          nullable: true
+          type: string
+        estado:
+          enum:
+          - REGISTRADA
+          - CLASIFICADA
+          - PRIORIZADA
+          - ASIGNADA
+          - EN_GESTION
+          - CERRADA
+          - RECHAZADA
+          type: string
+        responsableId:
+          nullable: true
+          type: integer
+        fechaRegistro:
+          format: date-time
+          type: string
+      required:
+      - descripcion
+      - estado
+      - fechaRegistro
+      - id
+      - origen
+      - solicitanteId
+      type: object
+    HistorialMovimiento:
+      example:
+        accion: REGISTRO
+        realizadoPor: realizadoPor
+        fecha: 2000-01-23T04:56:07.000+00:00
+        solicitudId: 6
+        id: 0
+        detalle: detalle
+      properties:
+        id:
+          type: integer
+        solicitudId:
+          type: integer
+        accion:
+          enum:
+          - REGISTRO
+          - CLASIFICACION
+          - PRIORIZACION
+          - ASIGNACION
+          - CAMBIO_ESTADO
+          - CIERRE
+          type: string
+        realizadoPor:
+          description: Quién realizó la acción
+          type: string
+        fecha:
+          description: Cuándo se realizó
+          format: date-time
+          type: string
+        detalle:
+          description: Qué acción se realizó / observación
+          type: string
+      required:
+      - accion
+      - fecha
+      - id
+      - realizadoPor
+      - solicitudId
+      type: object
+    ErrorResponse:
+      example:
+        message: Datos inválidos
+        status: 400
+      properties:
+        status:
+          example: 400
+          type: integer
+        message:
+          example: Datos inválidos
+          type: string
+      required:
+      - message
+      - status
+      type: object
+
