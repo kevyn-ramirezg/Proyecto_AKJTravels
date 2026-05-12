@@ -23,5 +23,5 @@ public class ImageValidators {
 
         return hasValidScheme && hasValidExtension;
     }
-
+//hh
 }
