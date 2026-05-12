@@ -206,8 +206,10 @@ public class UserServiceImpl implements UserService {
     public void updatePhoto(String id, MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) throw new BadRequestException("Debes adjuntar una imagen");
 
-        String ct = file.getContentType() != null ? file.getContentType() : "";
-        if (!ct.startsWith("image/")) throw new ValueConflictException("El archivo debe ser una imagen");
+        String ct = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
+        if (!ct.equals("image/jpeg") && !ct.equals("image/png") && !ct.equals("image/webp")) {
+            throw new ValueConflictException("Formato de imagen no permitido. Usa JPG, PNG o WEBP.");
+        }
         if (file.getSize() > 5L * 1024 * 1024) throw new ValueConflictException("La imagen no debe superar 5 MB");
         validateCurrentUser(id);
         User user = userRepository.findById(id)

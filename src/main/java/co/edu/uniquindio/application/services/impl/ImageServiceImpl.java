@@ -4,12 +4,13 @@ import co.edu.uniquindio.application.exceptions.BadRequestException;
 import co.edu.uniquindio.application.services.ImageService;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,14 +23,25 @@ public class ImageServiceImpl implements ImageService {
             "image/png",
             "image/webp"
     );
+
     private final Cloudinary cloudinary;
 
-    public ImageServiceImpl(){
-        Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", "dje3qr8tq");
-        config.put("api_key", "693381465632364");
-        config.put("api_secret", "5cICFV1EvZ-E8FPCAyNSh5WGUt0");
-        cloudinary = new Cloudinary(config);
+    public ImageServiceImpl(
+            @Value("${cloudinary.cloud-name}") String cloudName,
+            @Value("${cloudinary.api-key}") String apiKey,
+            @Value("${cloudinary.api-secret}") String apiSecret
+    ) {
+        if (cloudName == null || cloudName.isBlank()
+                || apiKey == null || apiKey.isBlank()
+                || apiSecret == null || apiSecret.isBlank()) {
+            throw new IllegalStateException("Cloudinary no esta configurado correctamente");
+        }
+
+        this.cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", cloudName,
+                "api_key", apiKey,
+                "api_secret", apiSecret
+        ));
     }
 
     @Override
@@ -47,8 +59,8 @@ public class ImageServiceImpl implements ImageService {
             );
             return cloudinary.uploader().upload(file, options);
         } finally {
-            if (file != null && file.exists()) {
-                file.delete();
+            if (file != null && file.exists() && !file.delete()) {
+                file.deleteOnExit();
             }
         }
     }
@@ -64,7 +76,7 @@ public class ImageServiceImpl implements ImageService {
 
         String contentType = image.getContentType();
 
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
             throw new BadRequestException("Formato de imagen no permitido. Usa JPG, PNG o WEBP.");
         }
     }
@@ -75,10 +87,16 @@ public class ImageServiceImpl implements ImageService {
     }
 
     private File convert(MultipartFile image) throws IOException {
-        File file = File.createTempFile(image.getOriginalFilename(), null);
-        FileOutputStream fos = new FileOutputStream(file);
-        fos.write(image.getBytes());
-        fos.close();
+        String originalName = image.getOriginalFilename();
+        String prefix = originalName == null || originalName.isBlank() ? "akj-image" : originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        if (prefix.length() < 3) {
+            prefix = "akj-image";
+        }
+
+        File file = File.createTempFile(prefix, null);
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(image.getBytes());
+        }
         return file;
     }
 }
