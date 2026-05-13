@@ -26,7 +26,7 @@ public class UserController {
     private final PlaceService placeService;
     private final UserService userService;
     private final BookingService bookingService;
-
+//
 
     @PutMapping(("/{id}"))
     public ResponseEntity<ResponseDTO<String>> edit(@PathVariable String id, @Valid @RequestBody EditUserDTO editUserDTO) throws Exception {
