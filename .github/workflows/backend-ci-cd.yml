@@ -1,7 +1,9 @@
 name: Backend CI/CD
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - despliegue
 
 jobs:
   test-build-and-deploy:
