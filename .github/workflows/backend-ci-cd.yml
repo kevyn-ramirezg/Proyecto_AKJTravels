@@ -57,7 +57,7 @@ jobs:
         id: upload
         shell: bash
         run: |
-          VERSION_LABEL="backend-${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}"
+          VERSION_LABEL="backend-${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
           S3_KEY="elasticbeanstalk/backend/${VERSION_LABEL}.jar"
 
           aws s3 cp "${{ steps.jar.outputs.file }}" "s3://${{ secrets.EB_DEPLOY_BUCKET }}/${S3_KEY}"
