@@ -4,7 +4,7 @@ import co.edu.uniquindio.application.dto.placeDTO.CreatePlaceDTO;
 import co.edu.uniquindio.application.dto.placeDTO.EditPlaceDTO;
 import co.edu.uniquindio.application.model.Place;
 import org.mapstruct.*;
-
+//mappers
 @Mapper(
         componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
