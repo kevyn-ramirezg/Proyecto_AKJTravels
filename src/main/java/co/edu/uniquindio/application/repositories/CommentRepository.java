@@ -14,19 +14,8 @@ import java.time.LocalDateTime;
 public interface CommentRepository extends JpaRepository<Comment, String> {
 
     Page<Comment> findAllByPlaceId(String placeId, Pageable pageable);
+
     boolean existsByBookingId(String bookingId);
-
-    @Query("""
-    SELECT COALESCE(AVG(c.rating), 0.0)
-    FROM Comment c
-    WHERE c.place.id = :placeId
-      AND (:startDate IS NULL OR c.createdAt >= :startDate)
-      AND (:endDate IS NULL OR c.createdAt <= :endDate)
-    """)
-    Double findAverageRatingByPlaceId(@Param("placeId") String placeId,
-                                              @Param("startDate")LocalDateTime startDate,
-                                              @Param("endDate")LocalDateTime endDate);
-
 
     @Query("""
         SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
@@ -63,17 +52,4 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
     Double avgRatingByPlaceIdBetween(@Param("placeId") String placeId,
                                      @Param("from") LocalDateTime from,
                                      @Param("to") LocalDateTime to);
-
-
-    @Query("""
-SELECt COUNT(c)
-FROM Comment c
-where c.place.id = :placeId
-AND (:startDate IS NULL OR c.createdAt >= :startDate)
-      AND (:endDate IS NULL OR c.createdAt <= :endDate)
-""")
-    long countByPlaceId(@Param("placeId")String placeId,
-                                @Param("startDate")LocalDateTime startDate,
-                                @Param("endDate")LocalDateTime endDate);
-
 }

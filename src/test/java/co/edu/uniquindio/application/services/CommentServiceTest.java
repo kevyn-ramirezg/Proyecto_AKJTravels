@@ -29,6 +29,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,7 +76,8 @@ class CommentServiceTest {
         when(userRepository.findById("user-1")).thenReturn(Optional.of(guest));
         when(commentRepository.existsByBookingId("booking-1")).thenReturn(false);
         when(commentMapper.toEntity(dto)).thenReturn(mappedComment);
-        when(commentRepository.findAverageRatingByPlaceId("place-1", null, null)).thenReturn(4.5);
+        when(commentRepository.avgRatingByPlaceId(anyString()))
+                .thenReturn(4.5);
 
         commentService.createComment("booking-1", "user-1", dto);
 
@@ -101,7 +103,8 @@ class CommentServiceTest {
         when(userRepository.findById("user-1")).thenReturn(Optional.of(guest));
         when(commentRepository.existsByBookingId("booking-1")).thenReturn(false);
         when(commentMapper.toEntity(dto)).thenReturn(mappedComment);
-        when(commentRepository.findAverageRatingByPlaceId("place-1", null, null)).thenReturn(4.0);
+        when(commentRepository.avgRatingByPlaceId(anyString()))
+                .thenReturn(4.0);
 
         commentService.createComment("booking-1", "user-1", dto);
 

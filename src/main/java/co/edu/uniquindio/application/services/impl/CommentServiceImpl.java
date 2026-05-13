@@ -60,14 +60,12 @@ public class CommentServiceImpl implements CommentService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva"));
 
-        // 🔄 NUEVO: Intentar actualizar el estado si la reserva ha vencido
-        // Solo si está CONFIRMED Y el checkOut ya pasó
-        if (booking.getBookingState() == BookingState.CONFIRMED 
+        if (booking.getBookingState() == BookingState.CONFIRMED
                 && booking.getCheckOut().isBefore(LocalDateTime.now())) {
             log.info("Actualizando booking {} a COMPLETED automáticamente", bookingId);
             booking.setBookingState(BookingState.COMPLETED);
             bookingRepository.save(booking);
-            bookingRepository.flush(); // Asegurar que se persista inmediatamente
+            bookingRepository.flush();
         }
 
         if (booking.getBookingState() != BookingState.COMPLETED) {
@@ -92,11 +90,10 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.save(comment);
 
-        Double averageRating = commentRepository.findAverageRatingByPlaceId(booking.getPlace().getId(), null, null);
+        Double averageRating = commentRepository.avgRatingByPlaceId(booking.getPlace().getId());
         booking.getPlace().setAverageRatings(averageRating != null ? averageRating : 0.0);
 
         placeRepository.save(booking.getPlace());
-
     }
 
 }
