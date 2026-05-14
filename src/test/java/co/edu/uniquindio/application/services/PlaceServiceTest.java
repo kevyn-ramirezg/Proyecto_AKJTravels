@@ -33,10 +33,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
@@ -196,7 +199,10 @@ class PlaceServiceTest {
         Place place = place("place-1", user("host-1"), "Casa Campestre");
         PlaceDTO dto = new PlaceDTO("place-1", "Casa Campestre", 200.0, "https://img.com/a.jpg", State.ACTIVE, 4.5, "Armenia");
 
-        when(placeRepository.searchPlaces(eq(filters), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(place)));
+        when(placeRepository.findAll(
+                ArgumentMatchers.<Specification<Place>>any(),
+                any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(place)));
         when(showPlaceMapper.toPlaceDTO(place)).thenReturn(dto);
 
         List<PlaceDTO> result = placeService.search(filters, 0);
@@ -213,14 +219,20 @@ class PlaceServiceTest {
         filters.setMaximum(100.0);
 
         assertThrows(BadRequestException.class, () -> placeService.search(filters, 0));
-        verify(placeRepository, never()).searchPlaces(any(), any());
+        verify(placeRepository, never()).findAll(
+                ArgumentMatchers.<Specification<Place>>any(),
+                any(Pageable.class)
+        );
     }
 
     @Test
     @DisplayName("Debe rechazar búsqueda sin resultados")
     void searchRejectsEmptyResults() {
         ListPlaceDTO filters = new ListPlaceDTO();
-        when(placeRepository.searchPlaces(eq(filters), any(Pageable.class))).thenReturn(Page.<Place>empty());
+        when(placeRepository.findAll(
+                ArgumentMatchers.<Specification<Place>>any(),
+                any(Pageable.class)
+        )).thenReturn(Page.<Place>empty());
 
         assertThrows(ResourceNotFoundException.class, () -> placeService.search(filters, 0));
     }

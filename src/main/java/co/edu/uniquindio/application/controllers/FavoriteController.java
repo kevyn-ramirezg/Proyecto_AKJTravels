@@ -84,6 +84,19 @@ public class FavoriteController {
   ) {
     LocalDateTime fromDT = (from == null) ? null : from.atStartOfDay();
     LocalDateTime toDT = (to == null) ? null : to.atTime(LocalTime.MAX);
-    return favoriteRepository.countByPlaceIdBetween(placeId, fromDT, toDT);
+
+    if (fromDT == null && toDT == null) {
+      return favoriteRepository.countByPlaceId(placeId);
+    }
+
+    if (fromDT != null && toDT == null) {
+      return favoriteRepository.countByPlaceIdAndCreatedAtGreaterThanEqual(placeId, fromDT);
+    }
+
+    if (fromDT == null) {
+      return favoriteRepository.countByPlaceIdAndCreatedAtLessThanEqual(placeId, toDT);
+    }
+
+    return favoriteRepository.countByPlaceIdAndCreatedAtBetween(placeId, fromDT, toDT);
   }
 }

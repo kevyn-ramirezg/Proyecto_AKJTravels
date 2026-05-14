@@ -13,6 +13,10 @@ public final class BookingSpecifications {
         return (root, q, cb) -> cb.equal(root.get("place").get("id"), placeId);
     }
 
+    public static Specification<Booking> byUserId(String userId) {
+        return (root, q, cb) -> cb.equal(root.get("user").get("id"), userId);
+    }
+
     public static Specification<Booking> withState(BookingState state) {
         return (root, q, cb) -> state == null ? cb.conjunction() : cb.equal(root.get("bookingState"), state);
     }

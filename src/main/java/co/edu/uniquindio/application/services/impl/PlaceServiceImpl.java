@@ -17,6 +17,7 @@ import co.edu.uniquindio.application.repositories.CommentRepository;
 import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.PlaceService;
+import co.edu.uniquindio.application.repositories.spec.PlaceSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -102,30 +103,30 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
 
-  @Override
-  public void delete(String id) throws Exception {
-    Place place = placeRepository.findById(id)
-      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
+    @Override
+    public void delete(String id) throws Exception {
+        Place place = placeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
 
-    // (1) Solo el dueño puede eliminar
-    // currentUserService debe existir aquí (inyéctalo como en BookingServiceImpl)
-    String currentUserId = currentUserService.getCurrentUser();
-    if (!Objects.equals(place.getUser().getId(), currentUserId)) {
-      throw new UnauthorizedException("No eres el propietario de este alojamiento");
+        // (1) Solo el dueño puede eliminar
+        // currentUserService debe existir aquí (inyéctalo como en BookingServiceImpl)
+        String currentUserId = currentUserService.getCurrentUser();
+        if (!Objects.equals(place.getUser().getId(), currentUserId)) {
+            throw new UnauthorizedException("No eres el propietario de este alojamiento");
+        }
+
+        // (2) Bloquear si hay reservas futuras activas
+        boolean hasFutureActive = bookingRepository.existsByPlace_IdAndCheckInAfterAndBookingStateIn(
+                id, LocalDateTime.now(), List.of(BookingState.PENDING, BookingState.CONFIRMED)
+        );
+        if (hasFutureActive) {
+            throw new ValueConflictException("No se puede eliminar: tiene reservas futuras activas");
+        }
+
+        // (3) Soft delete
+        place.setState(State.DELETED);
+        placeRepository.save(place);
     }
-
-    // (2) Bloquear si hay reservas futuras activas
-    boolean hasFutureActive = bookingRepository.existsByPlace_IdAndCheckInAfterAndBookingStateIn(
-      id, LocalDateTime.now(), List.of(BookingState.PENDING, BookingState.CONFIRMED)
-    );
-    if (hasFutureActive) {
-      throw new ValueConflictException("No se puede eliminar: tiene reservas futuras activas");
-    }
-
-    // (3) Soft delete
-    place.setState(State.DELETED);
-    placeRepository.save(place);
-  }
 
     @Override
     public List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception {
@@ -139,7 +140,7 @@ public class PlaceServiceImpl implements PlaceService {
         }
 
         Pageable pageable = PageRequest.of(page, 10);
-        Page<Place> places = placeRepository.searchPlaces(listPlaceDTO, pageable);
+        Page<Place> places = placeRepository.findAll(PlaceSpecifications.withFilters(listPlaceDTO), pageable);
 
         if(places.isEmpty()){
             throw new ResourceNotFoundException("No hay alojamientos disponibles, prueba otro filtro");

@@ -185,7 +185,14 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Pageable pageable = PageRequest.of(page, 10);
-        Page<Booking> bookings = bookingRepository.findBookingsByUserWithFilters(id, searchBookingDTO, pageable);
+        Specification<Booking> spec = Specification.allOf(
+                BookingSpecifications.byUserId(id),
+                BookingSpecifications.withState(searchBookingDTO.state()),
+                BookingSpecifications.fromDate(searchBookingDTO.checkIn()),
+                BookingSpecifications.toDate(searchBookingDTO.checkOut()),
+                BookingSpecifications.withGuests(searchBookingDTO.guest_number())
+        );
+        Page<Booking> bookings = bookingRepository.findAll(spec, pageable);
 
         return bookings.stream()
                 .map(bookingMapper::toBookingDTO)
@@ -199,7 +206,14 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Pageable pageable = PageRequest.of(page, 10);
-        Page<Booking> bookings = bookingRepository.findBookingsByPlaceWithFilters(id, searchBookingDTO, pageable);
+        Specification<Booking> spec = Specification.allOf(
+                BookingSpecifications.byPlaceId(id),
+                BookingSpecifications.withState(searchBookingDTO.state()),
+                BookingSpecifications.fromDate(searchBookingDTO.checkIn()),
+                BookingSpecifications.toDate(searchBookingDTO.checkOut()),
+                BookingSpecifications.withGuests(searchBookingDTO.guest_number())
+        );
+        Page<Booking> bookings = bookingRepository.findAll(spec, pageable);
 
         return bookings.stream()
                 .map(bookingMapper::toBookingDTO)
@@ -269,27 +283,27 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public boolean updateStatusIfCompleted(String bookingId) throws Exception {
         Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
-        
+
         if (optionalBooking.isEmpty()) {
             return false;
         }
-        
+
         Booking booking = optionalBooking.get();
-        
+
         // Si NO está CONFIRMED, no hacer nada
         if (booking.getBookingState() != BookingState.CONFIRMED) {
             return false;
         }
-        
+
         // Si el checkOut NO ha pasado aún, no hacer nada
         if (booking.getCheckOut().isAfter(LocalDateTime.now())) {
             return false;
         }
-        
+
         // Actualizar a COMPLETED
         booking.setBookingState(BookingState.COMPLETED);
         bookingRepository.save(booking);
-        
+
         return true;
     }
 }
