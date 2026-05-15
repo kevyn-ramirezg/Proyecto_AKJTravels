@@ -41,13 +41,13 @@ public class CommentServiceImpl implements CommentService {
     private final BookingService bookingService;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDTO> listComments(String id, int page) throws Exception {
 
         Pageable pageable = PageRequest.of(page, 10);
 
         Page<Comment> list = commentRepository.findAllByPlaceId(id, pageable);
 
-        // ✅ Si no hay comentarios, devuelves vacío (no es 404)
         return list.stream()
                 .map(listCommentsMapper::ToCommentDTO)
                 .toList();
